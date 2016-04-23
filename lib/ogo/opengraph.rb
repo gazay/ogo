@@ -2,7 +2,7 @@ module Ogo
   class Opengraph
 
     attr_accessor :src, :url, :type, :title, :description,
-      :images, :metadata, :response, :body, :original_images,
+      :images, :metadata, :response, :body, :charset, :original_images,
       :error
 
     def initialize(src, options = {})
@@ -10,6 +10,7 @@ module Ogo
       @body = nil
       @images = []
       @metadata = {}
+      @charset = 'utf-8'
       @error = nil
 
       @_fallback = options[:fallback] || true
@@ -45,7 +46,9 @@ module Ogo
         if src.include? '</html>'
           self.body = src
         else
-          self.body = Ogo::Utils::RedirectFollower.new(src, options).resolve.body
+          resolved = Ogo::Utils::RedirectFollower.new(src, options).resolve
+          self.body = resolved.body
+          self.charset = resolved.charset if resolved.charset
         end
       rescue => e
         self.title = self.url = src
@@ -55,7 +58,7 @@ module Ogo
 
       if body
         attrs_list = %w(title url type description)
-        doc = Nokogiri.parse(body)
+        doc = parse_html
         doc.css('meta').each do |m|
           if m.attribute('property') && m.attribute('property').to_s.match(/^og:(.+)$/i)
             m_content = m.attribute('content').to_s.strip
@@ -74,7 +77,7 @@ module Ogo
 
     def load_fallback
       if body
-        doc = Nokogiri.parse(body)
+        doc = parse_html
 
         if title.to_s.empty? && doc.xpath("//head//title").size > 0
           self.title = doc.xpath("//head//title").first.text.to_s.strip
@@ -149,6 +152,27 @@ module Ogo
         metadata_container[path.to_sym] << {'_value'.to_sym => content}
         metadata_container
       end
+    end
+
+    def parse_html
+      unless charset
+        doc = Nokogiri.parse(body.scrub)
+        self.charset = guess_encoding(doc)
+      end
+      Nokogiri::HTML(body, nil, charset)
+    end
+
+    def guess_encoding(doc)
+      _charset = doc.xpath('//meta/@charset').first
+      return _charset.value.to_s if charset
+
+      _charset = doc.xpath('//meta').each do |m|
+        if m.attribute('http-equiv') && m.attribute('content') && m.attribute('http-equiv').value.casecmp('Content-Type')
+          return m.attribute('content').value.split('charset=').last.strip
+        end
+      end
+
+      'UTF-8'
     end
 
   end

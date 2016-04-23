@@ -8,7 +8,7 @@ module Ogo
       class TooManyRedirects < StandardError; end
       class EmptyURLError < ArgumentError; end
 
-      attr_accessor :url, :body, :redirect_limit, :response, :headers
+      attr_accessor :url, :body, :charset, :redirect_limit, :response, :headers
 
       def initialize(url, options = {})
         raise EmptyURLError if url.to_s.empty?
@@ -35,6 +35,14 @@ module Ogo
           self.redirect_limit -= 1
           resolve
         end
+
+        charset = nil
+        if content_type = response['content-type']
+          if content_type =~ /charset=(.+)/i
+            charset = $1
+          end
+        end
+        self.charset = charset
 
         self.body = response.body
         self
