@@ -6,19 +6,20 @@ module Ogo
       REDIRECT_DEFAULT_LIMIT = 5
 
       class TooManyRedirects < StandardError; end
+      class EmptyURLError < ArgumentError; end
 
       attr_accessor :url, :body, :redirect_limit, :response, :headers
 
       def initialize(url, options = {})
-        @limit = options[:limit] || REDIRECT_DEFAULT_LIMIT
+        raise EmptyURLError if url.to_s.empty?
+        @redirect_limit = options[:limit] || REDIRECT_DEFAULT_LIMIT
         @headers = options[:headers] || {}
-        @url = url
+        @url = url.start_with?('http') ? url : "http://#{url}"
       end
 
       def resolve
         raise TooManyRedirects if redirect_limit < 0
 
-        url = "http://#{url}" unless url.starts_with?('http')
         uri = Addressable::URI.parse(URI.escape(url))
 
         http = Net::HTTP.new(uri.host, uri.port)

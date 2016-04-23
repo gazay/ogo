@@ -1,18 +1,16 @@
-require 'nokogiri'
-require 'utils/redirect_follower'
-require "addressable/uri"
-require 'uri'
-
 module Ogo
   class Opengraph
 
-    attr_accessor :src, :url, :type, :title, :description, :images, :metadata, :response, :original_images
+    attr_accessor :src, :url, :type, :title, :description,
+      :images, :metadata, :response, :body, :original_images,
+      :error
 
     def initialize(src, options = {})
       @src = src
       @body = nil
       @images = []
       @metadata = {}
+      @error = nil
 
       @_fallback = options[:fallback] || true
       @_options = options
@@ -22,6 +20,22 @@ module Ogo
       parse_opengraph(@_options)
       load_fallback if @_fallback
       check_images_path
+      error ? error : self
+    end
+
+    def parse!
+      parse
+      error ? raise(error) : self
+    end
+
+    def inspect
+      str = "<Ogo::Opengraph:0x00#{'%x' % (self.object_id << 1)}\nurl=\"#{url}\",\nmetadata=#{metadata},\n"
+      str << "images=#{images},\ntype=\"#{type}\",\ntitle=\"#{title}\">"
+      str
+    end
+
+    def to_s
+      inspect
     end
 
     private
@@ -33,8 +47,9 @@ module Ogo
         else
           self.body = Ogo::Utils::RedirectFollower.new(src, options).resolve.body
         end
-      rescue
+      rescue => e
         self.title = self.url = src
+        self.error = e
         return
       end
 
@@ -135,5 +150,6 @@ module Ogo
         metadata_container
       end
     end
+
   end
 end

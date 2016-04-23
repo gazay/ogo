@@ -1,4 +1,7 @@
 require 'addressable/uri'
+require 'uri'
+require 'nokogiri'
+
 require_relative 'ogo/opengraph'
 require_relative 'ogo/utils/redirect_follower'
 
