@@ -20,9 +20,9 @@ module Ogo
       def resolve
         raise TooManyRedirects if redirect_limit < 0
 
-        uri = Addressable::URI.parse(URI.escape(url))
+        uri = Addressable::URI.parse(url).normalize
 
-        http = Net::HTTP.new(uri.host, uri.port)
+        http = Net::HTTP.new(uri.host, uri.inferred_port)
         if uri.scheme == 'https'
           http.use_ssl = true
           http.verify_mode = OpenSSL::SSL::VERIFY_PEER
