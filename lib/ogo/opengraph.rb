@@ -21,7 +21,7 @@ module Ogo
       parse_opengraph(@_options)
       load_fallback if @_fallback
       check_images_path
-      error ? error : self
+      self
     end
 
     def parse!
@@ -100,7 +100,7 @@ module Ogo
 
     def check_images_path
       self.original_images = images.dup
-      uri = Addressable::URI.parse(src)
+      uri = Addressable::URI.parse(url)
       imgs = images.dup
       self.images = []
       imgs.each do |img|
