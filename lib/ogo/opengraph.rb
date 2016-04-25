@@ -154,26 +154,5 @@ module Ogo
       end
     end
 
-    def parse_html
-      unless charset
-        doc = Nokogiri.parse(body.scrub)
-        self.charset = guess_encoding(doc)
-      end
-      Nokogiri::HTML(body, nil, charset)
-    end
-
-    def guess_encoding(doc)
-      _charset = doc.xpath('//meta/@charset').first
-      return _charset.value.to_s if charset
-
-      _charset = doc.xpath('//meta').each do |m|
-        if m.attribute('http-equiv') && m.attribute('content') && m.attribute('http-equiv').value.casecmp('Content-Type')
-          return m.attribute('content').value.split('charset=').last.strip
-        end
-      end
-
-      'UTF-8'
-    end
-
   end
 end
