@@ -22,6 +22,19 @@ module Ogo
       self
     end
 
+    def inspect
+      str = "<Ogo::PageSource:0x00#{'%x' % (self.object_id << 1)}\n"
+      str << "url=\"#{url}\",\n"
+      str << "charset=\"#{charset}\",\n"
+      str << "src=\"#{src.to_s.truncate(100, omission: '...')}\",\n"
+      str << "doc=#{doc.to_s.truncate(100, omission: '...')}\" >"
+      str
+    end
+
+    def to_s
+      inspect
+    end
+
     private
 
     def guess_encoding(_doc)
