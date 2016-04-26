@@ -46,7 +46,9 @@ module Ogo
           fi_check(:type, url).to_s
         else
           uri = Addressable::URI.parse(url).normalize
-          uri.path.split('.').last.to_s
+          if uri.path.include?('.')
+            uri.path.split('.').last.to_s
+          end
         end
     end
 

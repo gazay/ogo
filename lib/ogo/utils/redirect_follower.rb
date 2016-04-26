@@ -4,15 +4,22 @@ module Ogo
   module Utils
     class RedirectFollower
       REDIRECT_DEFAULT_LIMIT = 5
+      HTTP_DEFAULT_TIMEOUT = 3 # seconds
 
       class TooManyRedirects < StandardError; end
       class EmptyURLError < ArgumentError; end
 
-      attr_accessor :url, :body, :charset, :redirect_limit, :response, :headers
+      attr_accessor :url, :body, :charset, :redirect_limit, :http_timeout,
+        :response, :headers
 
       def initialize(url, options = {})
         raise EmptyURLError if url.to_s.empty?
-        @redirect_limit = options[:limit] || REDIRECT_DEFAULT_LIMIT
+        @redirect_limit = options[:redirect_limit] ||
+                          Ogo.config[:redirect_limit] ||
+                          REDIRECT_DEFAULT_LIMIT
+        @http_timeout = options[:http_timeout] ||
+                        Ogo.config[:http_timeout] ||
+                        HTTP_DEFAULT_TIMEOUT
         @headers = options[:headers] || {}
         @url = url.start_with?('http') ? url : "http://#{url}"
       end
@@ -23,6 +30,7 @@ module Ogo
         uri = Addressable::URI.parse(url).normalize
 
         http = Net::HTTP.new(uri.host, uri.inferred_port)
+        http.read_timeout = http_timeout
         if uri.scheme == 'https'
           http.use_ssl = true
           http.verify_mode = OpenSSL::SSL::VERIFY_PEER

@@ -9,11 +9,18 @@ require_relative 'ogo/utils/redirect_follower'
 require_relative 'ogo/version'
 
 module Ogo
+  @config = {
+    redirect_limit: 5,
+    http_timeout: 3
+  }
 
-  def self.parse_opengraph(url)
-    og = Ogo::Opengraph.new(url)
-    og.parse
-    og
+  def self.config
+    @config
+  end
+
+  def self.parse_opengraph(url, fallback=true)
+    og = Ogo::Parsers::Opengraph.new(url)
+    og.metadata(fallback)
   end
 
 end
