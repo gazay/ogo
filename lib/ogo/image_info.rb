@@ -1,7 +1,7 @@
 module Ogo
   class ImageInfo
 
-    attr_accessor :url, :width, :height, :type
+    attr_accessor :url
 
     def initialize(opts={})
       @url    = opts[:url]
@@ -10,8 +10,24 @@ module Ogo
       @type   = opts[:type]
     end
 
+    def width
+      fetch_size[0]
+    end
+
+    def height
+      fetch_size[1]
+    end
+
+    def type
+      fetch_type
+    end
+
+    def content_type
+      "image/#{fetch_type}"
+    end
+
     def fetch_size
-      return if @width && @height
+      return [@width, @height] if @width && @height
       if defined?(FastImage)
         @width, @height = fi_check(:size, url)
       else
@@ -39,20 +55,21 @@ module Ogo
       fetch_type
     end
 
-    def content_type
-      "image/#{fetch_type}"
-    end
-
     private
 
     def fi_check(method, url, options=nil)
       options ||= {raise_on_failure: true, timeout: 2.0}
       FastImage.send(method, url, options)
     rescue
-      url = Addressable::URI.parse(url).normalize
-      val = FastImage.send(method, url, options)
-      @url = url
-      val
+      begin
+        url = Addressable::URI.parse(url).normalize
+        val = FastImage.send(method, url, options)
+        @url = url
+        val
+      rescue => e
+        puts "Image url error: url=\"#{url}\", error=\"#{e}\""
+        nil
+      end
     end
 
   end

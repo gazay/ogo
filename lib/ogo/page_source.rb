@@ -12,13 +12,13 @@ module Ogo
     def parse
       unless charset
         _doc = Nokogiri.parse(src.scrub)
-        self.charset = guess_encoding(_doc)
+        @charset = guess_encoding(_doc)
       end
       Nokogiri::HTML(src, nil, charset)
     end
 
     def parse!
-      self.doc = parse
+      @doc = parse
       self
     end
 

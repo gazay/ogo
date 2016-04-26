@@ -3,8 +3,10 @@ require 'uri'
 require 'nokogiri'
 
 require_relative 'ogo/page_source'
-require_relative 'ogo/opengraph'
+require_relative 'ogo/image_info'
+require_relative 'ogo/parsers'
 require_relative 'ogo/utils/redirect_follower'
+require_relative 'ogo/version'
 
 module Ogo
 
