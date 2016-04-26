@@ -36,6 +36,21 @@ module Ogo
         end
     end
 
+    def image
+      all_images.first
+    end
+
+    def all_images
+      @all_images ||= \
+        begin
+          imgs = (
+            fetch_images("//head//link[@rel='image_src']", "href") +
+            fetch_images("//img", "src")
+          ).flatten.compact.uniq
+          imgs.map { |img| Ogo::ImageInfo.new(url: img) }
+        end
+    end
+
     private
 
     def fetch_first_text
@@ -45,10 +60,10 @@ module Ogo
       end
     end
 
-    def fetch_images(doc, xpath_str, attr)
-      doc.xpath(xpath_str).each do |link|
-        add_image(link.attribute(attr).to_s.strip)
-      end
+    def fetch_images(xpath_str, attr)
+      page.doc.xpath(xpath_str).map do |tag|
+        link.attribute(attr).to_s.strip
+      end.reject { |it| it.empty? }.uniq
     end
 
   end
